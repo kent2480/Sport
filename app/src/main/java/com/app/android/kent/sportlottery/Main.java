@@ -12,13 +12,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 
 
 public class Main extends ActionBarActivity {
     private static final String TAG = "Main";
-    private String url = "https://www.sportslottery.com.tw/web/services/rs/betting/games/15102/0.json?status=active&limit=21&action=excludeTournamentWithExceptionPriority&marketLimit=1&sportId=s-442&locale=tw&brandId=defaultBrand&channelId=1";
+    private String urlSite = "http://tw.yahoo.com";
+    private HttpURLConnection urlConnection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,24 +39,35 @@ public class Main extends ActionBarActivity {
         data = (TextView) findViewById(R.id.tv_data);
     }
 
-    public class SportData implements View.OnClickListener{
+    public class SportData implements View.OnClickListener {
 
         @Override
         public void onClick(View v) {
-            Log.e(TAG, "onClick");
+            //Log.e(TAG, "onClick");
 
             new AsyncTask<String, Void, Void>() {
                 @Override
                 protected Void doInBackground(String... params) {
                     try {
                         URL url = new URL(params[0]);
-                        URLConnection connection = url.openConnection();
-                        InputStream is = connection.getInputStream();
+                        urlConnection = (HttpURLConnection) url.openConnection();
+                        urlConnection.setRequestMethod("GET");
+                        urlConnection.setDoOutput(true);
+//                        urlConnection.setChunkedStreamingMode(0);
+//                        urlConnection.setReadTimeout(10000);
+//                        urlConnection.setConnectTimeout(15000);
+                        urlConnection.setUseCaches(false);
+//                        urlConnection.connect();
+
+                        int code = urlConnection.getResponseCode();
+                        Log.d(TAG, "code = " + code);
+
+                        InputStream is = urlConnection.getInputStream();
                         InputStreamReader isr = new InputStreamReader(is);
                         BufferedReader br = new BufferedReader(isr);
                         String line;
-                        while((line = br.readLine()) != null ) {
-                            Log.d(TAG,"line = " + line);
+                        while ((line = br.readLine()) != null) {
+                            Log.d(TAG, line);
                         }
                         br.close();
                         isr.close();
@@ -63,10 +75,16 @@ public class Main extends ActionBarActivity {
 
                     } catch (IOException e) {
                         e.printStackTrace();
+                    } finally {
+
+                        urlConnection.disconnect();
                     }
                     return null;
                 }
-            }.execute(url);
+            }.execute(urlSite);
         }
     }
 }
+
+
+
